@@ -24,6 +24,7 @@ class _MedicineCalculatorState extends State<MedicineCalculator> {
   final TextEditingController totalPriceController = TextEditingController();
 
   String result = "";
+  String Ml = "";
 
   void calculatePrice() {
     double totalAmount = double.tryParse(totalAmountController.text) ?? 0;
@@ -33,10 +34,13 @@ class _MedicineCalculatorState extends State<MedicineCalculator> {
     if (totalAmount > 0 && usedAmount > 0 && totalPrice > 0) {
       
       double pricePerUnit = totalPrice / totalAmount;
+      
       double usedPrice = pricePerUnit * usedAmount;
 
       setState(() {
-        result = "Стоимость введенного лекарственного препарата ${usedPrice.toStringAsFixed(2)}";
+        result = "Стоимость израсходованного лекарственного препарата ${usedPrice.toStringAsFixed(2)}";
+        Ml = "Фактическая Стоимость ${pricePerUnit.toString()}";
+        
       });
     } else {
       setState(() {
@@ -96,8 +100,23 @@ class _MedicineCalculatorState extends State<MedicineCalculator> {
             TextFormField(
               controller: totalPriceController,
               keyboardType: TextInputType.number,
-              decoration: InputDecoration(labelText: "Фактическая стоимость"),
+              decoration: InputDecoration(labelText: "Стоимость введенного препарата"),
             ),
+            SizedBox(height: 20),
+            Text(
+              result, 
+              style: TextStyle(fontSize: 18)
+              
+              ),
+            Text(
+              Ml
+              
+              
+              ),
+            
+            
+           
+
 
             TextFormField(
                   decoration: const InputDecoration(
@@ -114,8 +133,8 @@ class _MedicineCalculatorState extends State<MedicineCalculator> {
               onPressed: calculatePrice,
               child: Text("Рассчитать"),
             ),
-            SizedBox(height: 20),
-            Text(result, style: TextStyle(fontSize: 18)),
+            // SizedBox(height: 20),
+            // Text(result, style: TextStyle(fontSize: 18)),
           ],
         ),
       ),
