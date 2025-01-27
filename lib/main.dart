@@ -3,6 +3,8 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_cec/db/his.dart';
+
 import 'package:printing/printing.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -28,11 +30,31 @@ class PrintForm extends StatefulWidget {
 
 class _PrintFormState extends State<PrintForm> {
 
-  //АЙ полей
+
+  final HistoryService _historyService = HistoryService();
+  List<String> _history = [];
+
+    @override
+  void initState() {
+    super.initState();
+    _loadHistory();
+  }
+
+ 
+  void _loadHistory() async {
+    List<String> history = await _historyService.loadHistory();
+    setState(() {
+      _history = history;
+    });
+  }
+
+
 
   final TextEditingController _name = TextEditingController();
   final TextEditingController _number = TextEditingController();
   final TextEditingController _farm = TextEditingController();
+  final TextEditingController _red = TextEditingController();
+  final TextEditingController _cod = TextEditingController();
   static TextEditingController _date = TextEditingController();
   final TextEditingController totalAmountController = TextEditingController();
   final TextEditingController usedAmountController = TextEditingController();
@@ -70,11 +92,19 @@ class _PrintFormState extends State<PrintForm> {
       double filPrise = totalAmount * pricePerUnit;
 
       setState(() {
-        result = "Стоимость введенного лекарственного препарата ${usedPrice.toStringAsFixed(2)}";
+        result = "Стоимость введенного препарата ${usedPrice.toStringAsFixed(2)}";
         Ml = "Фактическая Стоимость ${pricePerUnit.toStringAsFixed(2)}";
         fil = "Стоимость израсходованного препарата ${filPrise.toStringAsFixed(2)}";
-        
       });
+
+      // Сохранение данных в историю
+      String historyData = """
+        Пациент: ${_name.text}, Номер истории: ${_number.text}, 
+        Введено: ${usedAmountController.text} мг, Израсходовано: ${totalAmountController.text} мг, 
+        Стоимость: ${result}, Стоимость израсходованного: ${fil}
+      """;
+      _historyService.saveToHistory(historyData);
+      _loadHistory(); // Обновляем список истории
     } else {
       setState(() {
         result = "Пожалуйста, введите правильные значения.";
@@ -91,7 +121,7 @@ void _printData() async {
 
   // Собираем данные в таблицу
   List<List<String>> tableData = [
-    ['Параметр', 'Значение'],
+    ['Название полей в МЭС', 'Значение'],
     ['Фамилия, имя, отчество пациента', _inputname],
     ['Номер истории болезни', _number.text],
     ['Противоопухольный лекарственный препарат', _farm.text],
@@ -103,6 +133,9 @@ void _printData() async {
     ['Стоимость введенного препарата', result],
     ['Стоимость израсходованного препарата', fil],
     ['Фактическая стоимость', Ml],
+    ['Редукция', _red.text],
+    ['Код схемы лекарственной терапии', _cod.text],
+    ['Расширенный идентификатор МНН(международное непатентованное наименование)', 'Заполняется автоматически программой после выбора схемы лекарственной терапии'],
   ];
 
   // Добавляем страницу с таблицей в PDF документ
@@ -121,127 +154,239 @@ void _printData() async {
     ),
   );
 
-  // Отправляем созданный PDF на печать
+  
   await Printing.layoutPdf(
     onLayout: (PdfPageFormat format) async => pdf.save(),
   );
 }
 
-  // Отправляем созданный PDF на печать
 
-
-    
-   
-
-  @override
+ @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-      ),
+      appBar: AppBar(title: Text('ГБУЗ ТОКОД')),
       body: Padding(
-        padding: const EdgeInsets.all(1.0),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           children: <Widget>[
-            TextFormField(
-              controller: _name,
-                  decoration: const InputDecoration(
-                    labelText: 'Фамилия имя отчество пациента',
-                  ),
-                
-                ),
-                 TextFormField(
-                  controller: _number,
-                  decoration: const InputDecoration(
-                    labelText: 'Номер истории болезней',
-                  ),
-                 
-                ),
-                TextFormField(
-                  controller: _farm,
-                  decoration: const InputDecoration(
-                    labelText: 'Противоопухольный лекарственный препарат',
-                  ),
-                  onSaved: (newValue) {
-                  
-                  },
-                ),
-                TextFormField(
-                  controller: _date,
-                  decoration: const InputDecoration(
-                    labelText: 'Дата введения',
-                    hintText: 'ДД.ММ.ГГГГ',
-
-
-                  ),
-                ),
-            TextFormField(
-              controller:  usedAmountController,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                      labelText: 'Количество введено', suffixText: 'мг'),
-            ),
-            TextFormField(
-              controller: totalAmountController,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(labelText: 'Количество израсходаванного', suffixText: 'мг'),
-            ),
-            TextFormField(
-              controller: AmountPriceController,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(labelText: 'Колическтов мл во флаконе', suffixText: 'мг'),
-            ),
-
-            TextFormField(
-              controller: totalPriceController,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(labelText: "Стоимость Флакона"),
-            ),
+            // Заголовок
+            Text('Блять да прост введи даные и напечатай блт', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             SizedBox(height: 10),
-            Text(
-              result, 
-              style: TextStyle(fontSize: 9)),
-            Text(
-              Ml,
-              style: TextStyle(fontSize: 9)),
-
-            Text(
-              
-              fil,
-              style: TextStyle(fontSize: 9)),
-              
-            TextFormField(
-                  decoration: const InputDecoration(
-                    labelText: 'Редукция',
-                  ),
+            
+            
+            Table(
+              border: TableBorder.all(width: 0.5, color: Colors.black),
+              children: [
+                TableRow(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text('Фамилия, имя, отчество пациента:', style: TextStyle(fontWeight: FontWeight.bold)),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: TextFormField(
+                        controller: _name,
+                        decoration: InputDecoration(hintText: 'Введите данные'),
+                      ),
+                    ),
+                  ],
                 ),
-                TextFormField(
-                  decoration: const InputDecoration(
-                    labelText: 'Код схемы лекарственной терапии',
-                  ),
+                TableRow(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text('Номер истории болезни:', style: TextStyle(fontWeight: FontWeight.bold)),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: TextFormField(
+                        controller: _number,
+                        decoration: InputDecoration(hintText: 'Введите номер'),
+                      ),
+                    ),
+                  ],
                 ),
-            SizedBox(height: 5),
+                TableRow(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text('Противоопухольный препарат:', style: TextStyle(fontWeight: FontWeight.bold)),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: TextFormField(
+                        controller: _farm,
+                        decoration: InputDecoration(hintText: 'Введите название'),
+                      ),
+                    ),
+                  ],
+                ),
+                TableRow(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text('Дата введения:', style: TextStyle(fontWeight: FontWeight.bold)),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: TextFormField(
+                        controller: _date,
+                        decoration: InputDecoration(hintText: 'ДД.ММ.ГГГГ'),
+                      ),
+                    ),
+                  ],
+                ),
+                TableRow(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text('Количество введено (мг):', style: TextStyle(fontWeight: FontWeight.bold)),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: TextFormField(
+                        controller: usedAmountController,
+                        keyboardType: TextInputType.number,
+                        decoration: InputDecoration(hintText: 'Введите значение'),
+                      ),
+                    ),
+                  ],
+                ),
+                TableRow(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text('Количество израсходовано (мг):', style: TextStyle(fontWeight: FontWeight.bold)),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: TextFormField(
+                        controller: totalAmountController,
+                        keyboardType: TextInputType.number,
+                        decoration: InputDecoration(hintText: 'Введите значение'),
+                      ),
+                    ),
+                  ],
+                ),
+                TableRow(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text('Количество мл во флаконе:', style: TextStyle(fontWeight: FontWeight.bold)),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: TextFormField(controller: AmountPriceController,
+                        keyboardType: TextInputType.number,
+                        decoration: InputDecoration(hintText: 'Введите значение'),
+                      ),
+                    ),
+                  ],
+                ),
+                TableRow(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text('Стоимость флакона:', style: TextStyle(fontWeight: FontWeight.bold)),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: TextFormField(
+                        controller: totalPriceController,
+                        keyboardType: TextInputType.number,
+                        decoration: InputDecoration(hintText: 'Введите сумму'),
+                      ),
+                    ),
+                  ],
+                ),
+                TableRow(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text('Редукция:', style: TextStyle(fontWeight: FontWeight.bold)),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: TextFormField(
+                        controller: _red,
+                        keyboardType: TextInputType.number,
+                        decoration: InputDecoration(hintText: 'Введите значение'),
+                      ),
+                    ),
+                  ],
+                ),
+                TableRow(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text('Код лекарственной терапии:', style: TextStyle(fontWeight: FontWeight.bold)),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: TextFormField(
+                        controller: _cod,
+                        keyboardType: TextInputType.number,
+                        decoration: InputDecoration(hintText: 'Введите значение'),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            
+            SizedBox(height: 20),
             ElevatedButton(
               onPressed: calculatePrice,
-              child: Text("Рассчитать"),
+              child: Text('Рассчитать'),
             ),
-            SizedBox(height: 5),
+
+            SizedBox(height: 10),
             ElevatedButton(
               onPressed: () {
                 setState(() {
                   _inputname = _name.text;
-                  
                 });
-                _printData();  // Вызываем функцию печати
+                _printData();
               },
               child: Text('Распечатать'),
             ),
-            
-            
-       
+
+
+            SizedBox(height: 20),
+            Text(
+              result,
+               style: TextStyle(fontSize: 16)
+               ),
+
+            Text(Ml,
+             style: TextStyle(fontSize: 16)
+             ),
+
+            Text(fil, 
+            style: TextStyle(fontSize: 16)
+            ),
+
+
+            SizedBox(height: 5),
+
+            Text('History:'),
+
+            Expanded(
+              child: ListView.builder
+              (
+              itemCount: _history.length ,
+              itemBuilder: (context, index){
+                return ListTile(
+                  title:  Text(_history[index]),);
+                
+              }
+            ))
+
+
           ],
         ),
       ),
     );
   }
 }
-
