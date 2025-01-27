@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_cec/db/his.dart';
 
+
 import 'package:printing/printing.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -40,7 +41,7 @@ class _PrintFormState extends State<PrintForm> {
     _loadHistory();
   }
 
- 
+  // Загрузка истории при запуске
   void _loadHistory() async {
     List<String> history = await _historyService.loadHistory();
     setState(() {
@@ -48,7 +49,7 @@ class _PrintFormState extends State<PrintForm> {
     });
   }
 
-
+  //АЙ полей
 
   final TextEditingController _name = TextEditingController();
   final TextEditingController _number = TextEditingController();
@@ -154,23 +155,33 @@ void _printData() async {
     ),
   );
 
-  
+  // Отправляем созданный PDF на печать
   await Printing.layoutPdf(
     onLayout: (PdfPageFormat format) async => pdf.save(),
   );
 }
 
+  // Отправляем созданный PDF на печать
 
- @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text('ГБУЗ ТОКОД')),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: <Widget>[
-            // Заголовок
-            Text('Блять да прост введи даные и напечатай блт', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+@override 
+Widget build(BuildContext context){
+  return Scaffold(
+    appBar: AppBar(
+  title: Text('Тверской областной клинический онкологический диспансер'),
+  actions: <Widget>[
+    Image.asset("assets/001.png",),
+  ],
+),
+    body: SingleChildScrollView(
+      child: Padding(padding: const EdgeInsets.all(16.0),
+      
+    
+      child: Column(
+      children: <Widget>[
+        
+        
+      
+
             SizedBox(height: 10),
             
             
@@ -295,7 +306,7 @@ void _printData() async {
                       child: TextFormField(
                         controller: totalPriceController,
                         keyboardType: TextInputType.number,
-                        decoration: InputDecoration(hintText: 'Введите сумму'),
+                        decoration: InputDecoration(hintText: 'Введите сумму '),
                       ),
                     ),
                   ],
@@ -336,11 +347,12 @@ void _printData() async {
             ),
             
             SizedBox(height: 20),
+
+            // Кнопки
             ElevatedButton(
               onPressed: calculatePrice,
               child: Text('Рассчитать'),
             ),
-
             SizedBox(height: 10),
             ElevatedButton(
               onPressed: () {
@@ -351,42 +363,38 @@ void _printData() async {
               },
               child: Text('Распечатать'),
             ),
-
-
             SizedBox(height: 20),
-            Text(
-              result,
-               style: TextStyle(fontSize: 16)
-               ),
 
-            Text(Ml,
-             style: TextStyle(fontSize: 16)
-             ),
-
-            Text(fil, 
-            style: TextStyle(fontSize: 16)
-            ),
+            // Результаты расчетов
+            Text(result, style: TextStyle(fontSize: 16)),
+            Text(Ml, style: TextStyle(fontSize: 16)),
+            Text(fil, style: TextStyle(fontSize: 16)),
 
 
-            SizedBox(height: 5),
-
-            Text('History:'),
-
-            Expanded(
-              child: ListView.builder
-              (
-              itemCount: _history.length ,
-              itemBuilder: (context, index){
-                return ListTile(
-                  title:  Text(_history[index]),);
+            // SizedBox(height: 5),
+            // Text('History:'),
+            // Expanded(
+            //   child: ListView.builder
+            //   (
+            //   itemCount: _history.length ,
+            //   itemBuilder: (context, index){
+            //     return ListTile(
+            //       title:  Text(_history[index]),);
                 
-              }
-            ))
+            //   }
+            // ))
 
 
           ],
         ),
       ),
+    )
+      
     );
   }
+
+ 
 }
+
+    
+   
