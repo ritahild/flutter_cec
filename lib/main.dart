@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:printing/printing.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -31,20 +32,19 @@ class _PrintFormState extends State<PrintForm> {
 
   final TextEditingController _name = TextEditingController();
   final TextEditingController _number = TextEditingController();
+  final TextEditingController _farm = TextEditingController();
+  static TextEditingController _date = TextEditingController();
   final TextEditingController totalAmountController = TextEditingController();
   final TextEditingController usedAmountController = TextEditingController();
   final TextEditingController totalPriceController = TextEditingController();
   final TextEditingController AmountPriceController = TextEditingController();
 
-
-  //Настройка кодировки 
-  final Uint8List fontData = File('open-sans.ttf').readAsBytesSync();
-  static pw.Font ttf = pw.Font.ttf(fontData.buffer.asByteData());
-
   String result = "";
   String Ml = "";
   String fil = "";
   String _inputname = "";
+  String _inputdate = "";
+  
   
   
 
@@ -83,34 +83,55 @@ class _PrintFormState extends State<PrintForm> {
   }
 
   // Функция для создания PDF документа и его печати
-  void _printData() async {
-    final pdf = pw.Document();
+  
+void _printData() async {
+  final pdf = pw.Document();
+
+  final font = await PdfGoogleFonts.openSansRegular();
+
+  // Собираем данные в таблицу
+  List<List<String>> tableData = [
+    ['Параметр', 'Значение'],
+    ['Фамилия, имя, отчество пациента', _inputname],
+    ['Номер истории болезни', _number.text],
+    ['Противоопухольный лекарственный препарат', _farm.text],
+    ['Дата введения', _date.text],
+    ['Количество введено (мг)', usedAmountController.text],
+    ['Количество израсходованного (мг)', totalAmountController.text],
+    ['Количество мл во флаконе', AmountPriceController.text],
+    ['Стоимость флакона', totalPriceController.text],
+    ['Стоимость введенного препарата', result],
+    ['Стоимость израсходованного препарата', fil],
+    ['Фактическая стоимость', Ml],
+  ];
+
+  // Добавляем страницу с таблицей в PDF документ
+  pdf.addPage(
+    pw.Page(
+      pageFormat: PdfPageFormat.a4,
+      build: (pw.Context context) {
+        return pw.Table.fromTextArray(
+          context: context,
+          data: tableData,
+          headerStyle: pw.TextStyle(fontSize: 12, font: font, fontWeight: pw.FontWeight.bold),
+          cellStyle: pw.TextStyle(fontSize: 10, font: font),
+          border: pw.TableBorder.all(width: 0.5),
+        );
+      },
+    ),
+  );
+
+  // Отправляем созданный PDF на печать
+  await Printing.layoutPdf(
+    onLayout: (PdfPageFormat format) async => pdf.save(),
+  );
+}
+
+  // Отправляем созданный PDF на печать
+
+
     
-     
-    // Добавляем страницу с текстом в PDF документ
-    pdf.addPage(
-      pw.Page(
-        pageFormat: PdfPageFormat.a4,
-        build: (pw.Context context) {
-          return pw.Center(
-            child:
-             pw.Text(
-              _inputname,
-              style: pw.TextStyle(font: ttf, fontSize: 40),
-            ),
-            
-            
-            
-          ); // Вставляем введенные данные в PDF
-        },
-      ),
-    );
-    
-    // Отправляем созданный PDF на печать
-    await Printing.layoutPdf(
-      onLayout: (PdfPageFormat format) async => pdf.save(),
-    );
-  }
+   
 
   @override
   Widget build(BuildContext context) {
@@ -136,6 +157,7 @@ class _PrintFormState extends State<PrintForm> {
                  
                 ),
                 TextFormField(
+                  controller: _farm,
                   decoration: const InputDecoration(
                     labelText: 'Противоопухольный лекарственный препарат',
                   ),
@@ -144,6 +166,7 @@ class _PrintFormState extends State<PrintForm> {
                   },
                 ),
                 TextFormField(
+                  controller: _date,
                   decoration: const InputDecoration(
                     labelText: 'Дата введения',
                     hintText: 'ДД.ММ.ГГГГ',
@@ -182,6 +205,7 @@ class _PrintFormState extends State<PrintForm> {
               style: TextStyle(fontSize: 9)),
 
             Text(
+              
               fil,
               style: TextStyle(fontSize: 9)),
               
@@ -205,20 +229,15 @@ class _PrintFormState extends State<PrintForm> {
               onPressed: () {
                 setState(() {
                   _inputname = _name.text;
-                  // result = _name.text;
-                  // Ml = _name.text;
+                  
                 });
                 _printData();  // Вызываем функцию печати
               },
               child: Text('Распечатать'),
             ),
-            // SizedBox(height: 10),
-            // Text(
-            //   'Введенные данные: $_inputData',
-            //   style: TextStyle(fontSize: 10),
-            // ),
             
             
+       
           ],
         ),
       ),
