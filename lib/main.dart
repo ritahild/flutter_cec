@@ -1,5 +1,5 @@
-import 'dart:io';
-import 'dart:typed_data';
+// import 'dart:io';
+// import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -66,7 +66,7 @@ class _PrintFormState extends State<PrintForm> {
   String Ml = "";
   String fil = "";
   String _inputname = "";
-  String _inputdate = "";
+ 
   
   
   
@@ -93,9 +93,9 @@ class _PrintFormState extends State<PrintForm> {
       double filPrise = totalAmount * pricePerUnit;
 
       setState(() {
-        result = "Стоимость введенного препарата ${usedPrice.toStringAsFixed(2)}";
-        Ml = "Фактическая Стоимость ${pricePerUnit.toStringAsFixed(2)}";
-        fil = "Стоимость израсходованного препарата ${filPrise.toStringAsFixed(2)}";
+        result = "Стоимость введенного препарата ${usedPrice.toStringAsFixed(3)}";
+        Ml = "Фактическая Стоимость ${pricePerUnit.toStringAsFixed(3)}";
+        fil = "Стоимость израсходованного препарата ${filPrise.toStringAsFixed(3)}";
       });
 
       // Сохранение данных в историю
@@ -129,7 +129,7 @@ void _printData() async {
     ['Дата введения', _date.text],
     ['Количество введено (мг)', usedAmountController.text],
     ['Количество израсходованного (мг)', totalAmountController.text],
-    ['Количество мл во флаконе', AmountPriceController.text],
+    ['Количество мг во флаконе', AmountPriceController.text],
     ['Стоимость флакона', totalPriceController.text],
     ['Стоимость введенного препарата', result],
     ['Стоимость израсходованного препарата', fil],
@@ -189,7 +189,7 @@ Widget build(BuildContext context){
               border: TableBorder.all(width: 0.5, color: Colors.black),
               children: [
                 TableRow(
-                  children: [
+                  children:[
                     Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: Text('Фамилия, имя, отчество пациента:', style: TextStyle(fontWeight: FontWeight.bold)),
@@ -204,7 +204,7 @@ Widget build(BuildContext context){
                   ],
                 ),
                 TableRow(
-                  children: [
+                  children:[
                     Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: Text('Номер истории болезни:', style: TextStyle(fontWeight: FontWeight.bold)),
@@ -242,6 +242,7 @@ Widget build(BuildContext context){
                     Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: TextFormField(
+
                         controller: _date,
                         decoration: InputDecoration(hintText: 'ДД.ММ.ГГГГ'),
                       ),
@@ -284,7 +285,7 @@ Widget build(BuildContext context){
                   children: [
                     Padding(
                       padding: const EdgeInsets.all(8.0),
-                      child: Text('Количество мл во флаконе:', style: TextStyle(fontWeight: FontWeight.bold)),
+                      child: Text('Количество мг во флаконе:', style: TextStyle(fontWeight: FontWeight.bold)),
                     ),
                     Padding(
                       padding: const EdgeInsets.all(8.0),
@@ -363,7 +364,7 @@ Widget build(BuildContext context){
               },
               child: Text('Распечатать'),
             ),
-            SizedBox(height: 20),
+            SizedBox(height: 20), 
 
             // Результаты расчетов
             Text(result, style: TextStyle(fontSize: 16)),
@@ -388,12 +389,9 @@ Widget build(BuildContext context){
           ],
         ),
       ),
-    )
-      
-    );
+    )  
+   );
   }
-
- 
 }
 
     
